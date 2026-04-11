@@ -54,7 +54,7 @@ jobs:
         with:
           image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:${{ github.sha }}
           format: 'template'
-         template: '@/home/runner/.local/bin/trivy-bin/contrib/html.tpl'
+          template: '@/home/runner/.local/bin/trivy-bin/contrib/html.tpl'
           output: 'trivy-backend-report.html'
           severity: 'CRITICAL,HIGH,MEDIUM'
           exit-code: '0'
