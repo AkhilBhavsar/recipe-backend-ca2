@@ -47,3 +47,22 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:${{ github.sha }},${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:latest
+
+      - name: Run Trivy vulnerability scan
+        if: github.ref == 'refs/heads/main'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:${{ github.sha }}
+          format: 'template'
+          template: '@/contrib/html.tpl'
+          output: 'trivy-backend-report.html'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+
+      - name: Upload security report as artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-security-report
+          path: trivy-backend-report.html
+          retention-days: 30
