@@ -36,7 +36,6 @@ public class ServiceController {
 
 	@GetMapping("/")
 	public String index() {
-		p.main2();
 		return "Greetings from EAD CA2 Template project 2023-24!";
 	}
 
