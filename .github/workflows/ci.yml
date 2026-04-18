@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,21 +19,15 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          cache: 'maven'
 
       - name: Run tests
-        run: mvn test -B
+        run: mvn test --no-transfer-progress
 
       - name: Build JAR
-        run: mvn clean package -DskipTests -B
+        run: mvn clean package -DskipTests --no-transfer-progress
 
       - name: Log in to Azure Container Registry
-        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: ${{ secrets.ACR_LOGIN_SERVER }}
@@ -41,28 +35,29 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push Docker image
-        if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:${{ github.sha }},${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:latest
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:latest
+            ${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:${{ github.sha }}
 
       - name: Run Trivy vulnerability scan
-        if: github.ref == 'refs/heads/main'
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-backend:${{ github.sha }}
-          format: 'template'
-          template: '@/home/runner/.local/bin/trivy-bin/contrib/html.tpl'
-          output: 'trivy-backend-report.html'
+          format: 'table'
+          output: 'trivy-backend-report.txt'
           severity: 'CRITICAL,HIGH,MEDIUM'
           exit-code: '0'
+        env:
+          TRIVY_USERNAME: ${{ secrets.ACR_USERNAME }}
+          TRIVY_PASSWORD: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Upload security report as artifact
-        if: github.ref == 'refs/heads/main'
+      - name: Upload Trivy report as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: backend-security-report
-          path: trivy-backend-report.html
+          name: trivy-backend-report
+          path: trivy-backend-report.txt
           retention-days: 30
