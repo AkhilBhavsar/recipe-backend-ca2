@@ -61,3 +61,16 @@ jobs:
           name: trivy-backend-report
           path: trivy-backend-report.txt
           retention-days: 30
+
+      - name: Update image tag in infra manifest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git clone https://x-access-token:${{ secrets.INFRA_REPO_TOKEN }}@github.com/AkhilBhavsar/recipe-infra-ca2.git
+          cd recipe-infra-ca2
+          sed -i "s|recipeacr9c4b0f.azurecr.io/recipe-backend:.*|recipeacr9c4b0f.azurecr.io/recipe-backend:${{ github.sha }}|g" k8s/backend-blue.yml
+          sed -i "s|recipeacr9c4b0f.azurecr.io/recipe-backend:.*|recipeacr9c4b0f.azurecr.io/recipe-backend:${{ github.sha }}|g" k8s/backend-green.yml
+          git config user.email "ci@github.com"
+          git config user.name "GitHub Actions CI"
+          git add k8s/backend-blue.yml k8s/backend-green.yml
+          git diff --cached --quiet || git commit -m "ci: update backend image to ${{ github.sha }}"
+          git push
