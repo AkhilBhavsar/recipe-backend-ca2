@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 import java.util.Arrays;
 import java.util.List;
@@ -54,11 +57,15 @@ public class ServiceController {
 	}
 
 	@PostMapping("/recipe")
-	@ResponseStatus(HttpStatus.CREATED)
-	public int saveRecipe(@RequestBody Recipe rec)
-	{
-		System.out.println("About to add the following recipe: "+rec);
-		return p.addRecipes(Arrays.asList(rec));
-	}
-
+@ResponseStatus(HttpStatus.CREATED)
+public ResponseEntity<?> saveRecipe(@Valid @RequestBody Recipe rec) {
+    if (rec.getName() == null || rec.getName().trim().isEmpty()) {
+        return ResponseEntity.badRequest()
+            .body(Map.of("error", "Recipe name must not be blank"));
+    }
+    System.out.println("About to add the following recipe: " + rec);
+    p.addRecipes(Arrays.asList(rec));
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(Map.of("message", "Recipe saved successfully"));
+}
 }

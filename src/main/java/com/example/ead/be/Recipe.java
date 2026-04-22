@@ -1,14 +1,18 @@
-// POJO (Plain Old Java Object) class defining a recipe. This class is a POJO because it contains getters and
-// setters for every member variable as well as an empty constructor.
-
 package com.example.ead.be;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Recipe {
+
+    @NotBlank(message = "Recipe name must not be blank")
     private String name;
+
     private List<String> ingredients;
+
+    @Min(value = 1, message = "Prep time must be at least 1 minute")
     private int prepTimeInMinutes;
 
     public Recipe(String name, List<String> ingredients, int prepTimeInMinutes) {
@@ -17,8 +21,6 @@ public class Recipe {
         this.prepTimeInMinutes = prepTimeInMinutes;
     }
 
-    // empty constructor required when we fetch data from the database -- getters and setters are later used to
-    // set values for member variables
     public Recipe() {
         ingredients = new ArrayList<String>();
         name = "";
@@ -34,27 +36,10 @@ public class Recipe {
         return sb.toString();
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<String> getIngredients() {
-        return ingredients;
-    }
-
-    public void setIngredients(List<String> ingredients) {
-        this.ingredients = ingredients;
-    }
-
-    public int getPrepTimeInMinutes() {
-        return prepTimeInMinutes;
-    }
-
-    public void setPrepTimeInMinutes(int prepTimeInMinutes) {
-        this.prepTimeInMinutes = prepTimeInMinutes;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public List<String> getIngredients() { return ingredients; }
+    public void setIngredients(List<String> ingredients) { this.ingredients = ingredients; }
+    public int getPrepTimeInMinutes() { return prepTimeInMinutes; }
+    public void setPrepTimeInMinutes(int prepTimeInMinutes) { this.prepTimeInMinutes = prepTimeInMinutes; }
 }
